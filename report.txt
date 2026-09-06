@@ -1,0 +1,50 @@
+KOMPRESIJA I ZASTITA PODATAKA - PROJEKTNI ZADATAK 1
+
+1. Pokretanje programa
+
+Program je implementiran u jeziku Python i koristi samo standardnu biblioteku.
+
+Racunanje bajt-entropije:
+py main.py entropy sample.txt
+
+Kompresija:
+py main.py compress <metod> sample.txt <izlazni_fajl>
+
+Naziv metoda moze biti: shannon-fano, huffman, lz77 ili lzw.
+
+Dekompresija:
+py main.py decompress <kompresovani_fajl> <dekodirani_fajl>
+
+2. Kratak opis implementacije
+
+Bajt-entropija se racuna na osnovu broja pojavljivanja svake od 256 mogucih
+vrednosti bajta. Shannon-Fano deli simbole u dve grupe sa priblizno jednakim
+sumama frekvencija. Huffman u svakom koraku spaja dva cvora sa najmanjim
+frekvencijama. Kod oba metoda tabela kodova se cuva pre kodiranih podataka.
+
+LZ77 cuva pojedinacni bajt ili par koji sadrzi rastojanje i duzinu poklapanja
+u kliznom prozoru. LZW pocinje recnikom sa svih 256 vrednosti bajta i cuva
+12-bitne indekse reci. Kodirani podaci svih metoda pakuju se u bajtove.
+
+3. Rezultati
+
+Izabrani ulazni fajl: sample.txt
+Tip fajla: tekstualni
+Velicina: 1048576 bajtova (1 MiB)
+Bajt-entropija: 4.804111 bita po bajtu
+
+Stepen kompresije racuna se kao odnos velicine originalnog i kompresovanog
+fajla. Veca vrednost predstavlja bolju kompresiju.
+
+Metod           Kompresovana velicina     Stepen kompresije
+Shannon-Fano    637294 bajta               1.645 : 1
+Huffman         633356 bajta               1.656 : 1
+LZ77            126629 bajta               8.281 : 1
+LZW             199344 bajta               5.260 : 1
+
+Za svaki metod izvrsena je dekompresija. Sva cetiri dekodirana fajla su
+bajt po bajt jednaka originalnom fajlu.
+
+4. Izvori
+
+Opis algoritama LZ77 i LZW preuzet je iz nastavnog materijala (lz algoritmi.pdf). 
