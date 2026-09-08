@@ -3,13 +3,10 @@ from collections import deque
 
 from bitstream import BitReader, BitWriter
 
-
 LZ77_FILE_ID = b"LZ77"
 LZW_FILE_ID = b"LZW1"
 
-
-def find_lz77_match(data, position, window_size, max_length,
-                    three_byte_positions, last_two, last_one):
+def find_lz77_match(data, position, window_size, max_length, three_byte_positions, last_two, last_one):
     remaining = min(max_length, len(data) - position)
     best_distance = 0
     best_length = 0
@@ -20,8 +17,7 @@ def find_lz77_match(data, position, window_size, max_length,
         for candidate in reversed(three_byte_positions.get(key, ())):
             length = 3
 
-            while (length < remaining and
-                   data[candidate + length] == data[position + length]):
+            while (length < remaining and data[candidate + length] == data[position + length]):
                 length += 1
 
             if length > best_length:
@@ -47,9 +43,7 @@ def find_lz77_match(data, position, window_size, max_length,
 
     return best_distance, best_length
 
-
-def add_lz77_position(data, position, window_size,
-                      three_byte_positions, last_two, last_one):
+def add_lz77_position(data, position, window_size, three_byte_positions, last_two, last_one):
     old_position = position - window_size
 
     if old_position >= 0 and old_position + 2 < len(data):
@@ -71,7 +65,6 @@ def add_lz77_position(data, position, window_size,
 
     last_one[data[position]] = position
 
-
 def lz77_compress(data, window_size=4096, max_length=255):
     if not 1 <= window_size <= 65535:
         raise ValueError("Window size must be between 1 and 65535")
@@ -91,15 +84,7 @@ def lz77_compress(data, window_size=4096, max_length=255):
     position = 0
 
     while position < len(data):
-        distance, length = find_lz77_match(
-            data,
-            position,
-            window_size,
-            max_length,
-            three_byte_positions,
-            last_two,
-            last_one,
-        )
+        distance, length = find_lz77_match(data, position, window_size, max_length, three_byte_positions, last_two, last_one,)
 
         if length == 0:
             writer.write_bit(0)
@@ -112,27 +97,17 @@ def lz77_compress(data, window_size=4096, max_length=255):
             consumed = length
 
         for current in range(position, position + consumed):
-            add_lz77_position(
-                data,
-                current,
-                window_size,
-                three_byte_positions,
-                last_two,
-                last_one,
-            )
+            add_lz77_position(data, current, window_size, three_byte_positions, last_two, last_one,)
 
         position += consumed
 
     return header + writer.finish()
 
-
 def lz77_decompress(encoded):
     if len(encoded) < 16 or encoded[:4] != LZ77_FILE_ID:
         raise ValueError("Invalid LZ77 file header")
 
-    original_size, window_size, max_length = struct.unpack(
-        "<QHH", encoded[4:16]
-    )
+    original_size, window_size, max_length = struct.unpack("<QHH", encoded[4:16])
 
     if window_size == 0 or max_length == 0:
         raise ValueError("Invalid LZ77 parameters")
@@ -162,7 +137,6 @@ def lz77_decompress(encoded):
             result.append(result[-distance])
 
     return bytes(result)
-
 
 def lzw_compress(data, code_width=12):
     if not 9 <= code_width <= 16:
@@ -197,7 +171,6 @@ def lzw_compress(data, code_width=12):
 
     writer.write_bits(dictionary[current], code_width)
     return header + writer.finish()
-
 
 def lzw_decompress(encoded):
     if len(encoded) < 13 or encoded[:4] != LZW_FILE_ID:

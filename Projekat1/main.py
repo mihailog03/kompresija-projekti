@@ -1,46 +1,28 @@
-import argparse
+import sys
 from pathlib import Path
 
-from algorithms import (
-    HUFFMAN_FILE_ID,
-    SHANNON_FANO_FILE_ID,
-    byte_entropy,
-    huffman_compress,
-    huffman_decompress,
-    shannon_fano_compress,
-    shannon_fano_decompress,
-)
-from lz import (
-    LZ77_FILE_ID,
-    LZW_FILE_ID,
-    lz77_compress,
-    lz77_decompress,
-    lzw_compress,
-    lzw_decompress,
-)
-
+import algorithms
+import lz
 
 COMPRESSORS = {
-    "shannon-fano": shannon_fano_compress,
-    "huffman": huffman_compress,
-    "lz77": lz77_compress,
-    "lzw": lzw_compress,
+    "shannon-fano": algorithms.shannon_fano_compress,
+    "huffman": algorithms.huffman_compress,
+    "lz77": lz.lz77_compress,
+    "lzw": lz.lzw_compress,
 }
 
 FILE_ID_TO_DECOMPRESSOR = {
-    SHANNON_FANO_FILE_ID: shannon_fano_decompress,
-    HUFFMAN_FILE_ID: huffman_decompress,
-    LZ77_FILE_ID: lz77_decompress,
-    LZW_FILE_ID: lzw_decompress,
+    algorithms.SHANNON_FANO_FILE_ID: algorithms.shannon_fano_decompress,
+    algorithms.HUFFMAN_FILE_ID: algorithms.huffman_decompress,
+    lz.LZ77_FILE_ID: lz.lz77_decompress,
+    lz.LZW_FILE_ID: lz.lzw_decompress,
 }
-
 
 def show_entropy(input_name):
     data = Path(input_name).read_bytes()
     print(f"File: {input_name}")
     print(f"Size: {len(data)} bytes")
-    print(f"Byte entropy: {byte_entropy(data):.6f} bits/byte")
-
+    print(f"Byte entropy: {algorithms.byte_entropy(data):.6f} bits/byte")
 
 def compress_file(method, input_name, output_name):
     data = Path(input_name).read_bytes()
@@ -50,7 +32,6 @@ def compress_file(method, input_name, output_name):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(encoded)
     print(f"Compressed {len(data)} bytes to {len(encoded)} bytes")
-
 
 def decompress_file(input_name, output_name):
     encoded = Path(input_name).read_bytes()
@@ -64,40 +45,29 @@ def decompress_file(input_name, output_name):
     output_path.write_bytes(decoded)
     print(f"Decompressed file has {len(decoded)} bytes")
 
-
-def build_parser():
-    parser = argparse.ArgumentParser(description="Basic data compression algorithms")
-    commands = parser.add_subparsers(dest="command", required=True)
-
-    entropy_parser = commands.add_parser("entropy", help="calculate byte entropy")
-    entropy_parser.add_argument("input")
-
-    compress_parser = commands.add_parser("compress", help="compress a file")
-    compress_parser.add_argument("method", choices=COMPRESSORS)
-    compress_parser.add_argument("input")
-    compress_parser.add_argument("output")
-
-    decompress_parser = commands.add_parser("decompress", help="decompress a file")
-    decompress_parser.add_argument("input")
-    decompress_parser.add_argument("output")
-
-    return parser
-
-
 def main():
-    parser = build_parser()
-    arguments = parser.parse_args()
+    if len(sys.argv) < 2:
+        print("Invalid arguments")
+        return
+
+    command = sys.argv[1]
 
     try:
-        if arguments.command == "entropy":
-            show_entropy(arguments.input)
-        elif arguments.command == "compress":
-            compress_file(arguments.method, arguments.input, arguments.output)
-        elif arguments.command == "decompress":
-            decompress_file(arguments.input, arguments.output)
-    except (OSError, ValueError) as error:
-        parser.error(str(error))
+        if command == "entropy" and len(sys.argv) == 3:
+            show_entropy(sys.argv[2])
+        elif command == "compress" and len(sys.argv) == 5:
+            method = sys.argv[2]
 
+            if method not in COMPRESSORS:
+                raise ValueError("Unknown compression method")
+
+            compress_file(method, sys.argv[3], sys.argv[4])
+        elif command == "decompress" and len(sys.argv) == 4:
+            decompress_file(sys.argv[2], sys.argv[3])
+        else:
+            print("Invalid arguments")
+    except (OSError, ValueError) as error:
+        print(f"Error: {error}")
 
 if __name__ == "__main__":
     main()

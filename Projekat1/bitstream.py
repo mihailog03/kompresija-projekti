@@ -28,7 +28,6 @@ class BitWriter:
 
         return bytes(self.data)
 
-
 class BitReader:
     def __init__(self, data):
         self.data = data

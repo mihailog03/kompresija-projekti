@@ -1,4 +1,4 @@
-KOMPRESIJA I ZASTITA PODATAKA - PROJEKTNI ZADATAK 1
+KOMPRESIJA I ZASTITA PODATAKA - PROJEKAT 1
 
 1. Pokretanje programa
 
@@ -19,8 +19,9 @@ py main.py decompress <kompresovani_fajl> <dekodirani_fajl>
 
 Bajt-entropija se racuna na osnovu broja pojavljivanja svake od 256 mogucih
 vrednosti bajta. Shannon-Fano deli simbole u dve grupe sa priblizno jednakim
-sumama frekvencija. Huffman u svakom koraku spaja dva cvora sa najmanjim
-frekvencijama. Kod oba metoda tabela kodova se cuva pre kodiranih podataka.
+sumama frekvencija. Huffman u svakom koraku spaja dve grupe sa najmanjim
+frekvencijama i njihovim kodovima dopisuje 0 i 1. Kod oba metoda tabela
+kodova se cuva pre kodiranih podataka.
 
 LZ77 cuva pojedinacni bajt ili par koji sadrzi rastojanje i duzinu poklapanja
 u kliznom prozoru. LZW pocinje recnikom sa svih 256 vrednosti bajta i cuva
@@ -29,22 +30,26 @@ u kliznom prozoru. LZW pocinje recnikom sa svih 256 vrednosti bajta i cuva
 3. Rezultati
 
 Izabrani ulazni fajl: sample.txt
+Sadrzaj: The Iliad i The Odyssey, Homer
 Tip fajla: tekstualni
-Velicina: 1048576 bajtova (1 MiB)
-Bajt-entropija: 4.804111 bita po bajtu
+Velicina: 1500394 bajta (oko 1.50 MB)
+Bajt-entropija: 4.475969 bita po bajtu
 
 Stepen kompresije racuna se kao odnos velicine originalnog i kompresovanog
 fajla. Veca vrednost predstavlja bolju kompresiju.
 
 Metod           Kompresovana velicina     Stepen kompresije
-Shannon-Fano    637294 bajta               1.645 : 1
-Huffman         633356 bajta               1.656 : 1
-LZ77            126629 bajta               8.281 : 1
-LZW             199344 bajta               5.260 : 1
+Shannon-Fano    847649 bajta               1.770 : 1
+Huffman         846250 bajta               1.773 : 1
+LZ77            961150 bajta               1.561 : 1
+LZW             704703 bajta               2.129 : 1
 
 Za svaki metod izvrsena je dekompresija. Sva cetiri dekodirana fajla su
 bajt po bajt jednaka originalnom fajlu.
 
 4. Izvori
 
-Opis algoritama LZ77 i LZW preuzet je iz nastavnog materijala (lz algoritmi.pdf). 
+Opis algoritama preuzet je iz nastavnog materijala (knjiga "Teorija informacija i kodiranje" - dr Marko Petkovic, lz algoritmi.pdf).
+Test-ulaz cine javno dostupna Project Gutenberg izdanja Homerovih dela:
+The Iliad, eBook broj 3059: https://www.gutenberg.org/ebooks/3059
+The Odyssey, eBook broj 1727: https://www.gutenberg.org/ebooks/1727

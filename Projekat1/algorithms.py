@@ -6,16 +6,19 @@ from bitstream import BitReader, BitWriter
 SHANNON_FANO_FILE_ID = b"SF01"
 HUFFMAN_FILE_ID = b"HF01"
 
-
-def byte_entropy(data):
-    if len(data) == 0:
-        return 0.0
-
+def byte_counts(data):
     counts = [0] * 256
 
     for byte in data:
         counts[byte] += 1
 
+    return counts
+
+def byte_entropy(data):
+    if not data:
+        return 0.0
+
+    counts = byte_counts(data)
     entropy = 0.0
     data_size = len(data)
 
@@ -25,16 +28,6 @@ def byte_entropy(data):
             entropy -= probability * log2(probability)
 
     return entropy
-
-
-def byte_counts(data):
-    counts = [0] * 256
-
-    for byte in data:
-        counts[byte] += 1
-
-    return counts
-
 
 def shannon_fano_codes(counts):
     symbols = []
@@ -72,46 +65,37 @@ def shannon_fano_codes(counts):
 
     return codes
 
-
 def huffman_codes(counts):
-    nodes = []
+    groups = []
 
     for byte, count in enumerate(counts):
         if count > 0:
-            nodes.append((count, byte, byte))
+            groups.append((count, {byte: ""}))
 
-    if not nodes:
+    if not groups:
         return {}
 
-    if len(nodes) == 1:
-        byte = nodes[0][2]
-        return {byte: "0"}
+    while len(groups) > 1:
+        groups.sort(key=lambda group: group[0])
+        first_count, first_codes = groups.pop(0)
+        second_count, second_codes = groups.pop(0)
 
-    next_order = 256
+        for byte in first_codes:
+            first_codes[byte] = "0" + first_codes[byte]
 
-    while len(nodes) > 1:
-        nodes.sort(key=lambda item: (item[0], item[1]))
-        first_count, _, first_node = nodes.pop(0)
-        second_count, _, second_node = nodes.pop(0)
-        node = (first_node, second_node)
-        nodes.append((first_count + second_count, next_order, node))
-        next_order += 1
+        for byte in second_codes:
+            second_codes[byte] = "1" + second_codes[byte]
 
-    root = nodes[0][2]
-    codes = {}
+        first_codes.update(second_codes)
+        groups.append((first_count + second_count, first_codes))
 
-    def visit(node, prefix):
-        if isinstance(node, int):
-            codes[node] = prefix
-            return
+    codes = groups[0][1]
 
-        left, right = node
-        visit(left, prefix + "0")
-        visit(right, prefix + "1")
+    if len(codes) == 1:
+        byte = next(iter(codes))
+        codes[byte] = "0"
 
-    visit(root, "")
     return codes
-
 
 def encode_with_prefix_code(data, codes, file_id):
     header = bytearray(file_id)
@@ -130,7 +114,6 @@ def encode_with_prefix_code(data, codes, file_id):
         writer.write_code(codes[byte])
 
     return bytes(header) + writer.finish()
-
 
 def decode_prefix_code(encoded, expected_file_id):
     if len(encoded) < 14 or encoded[:4] != expected_file_id:
@@ -185,20 +168,16 @@ def decode_prefix_code(encoded, expected_file_id):
 
     return bytes(result)
 
-
 def shannon_fano_compress(data):
     codes = shannon_fano_codes(byte_counts(data))
     return encode_with_prefix_code(data, codes, SHANNON_FANO_FILE_ID)
 
-
 def shannon_fano_decompress(encoded):
     return decode_prefix_code(encoded, SHANNON_FANO_FILE_ID)
-
 
 def huffman_compress(data):
     codes = huffman_codes(byte_counts(data))
     return encode_with_prefix_code(data, codes, HUFFMAN_FILE_ID)
-
 
 def huffman_decompress(encoded):
     return decode_prefix_code(encoded, HUFFMAN_FILE_ID)
